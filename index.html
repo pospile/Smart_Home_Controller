@@ -8,7 +8,7 @@
 
   <title>Chytrá domácnost</title>
 
-    <script src="http://debug-software.intel.com/target/target-script-min.js#-Iw_PPwxu85cDVmaxZ3bk12iWQNKC16pTdOiLdM-1h8"></script>
+    <script src="parse.js"></script>
     <link rel="stylesheet" href="lib/onsen/css/onsenui.css">
     <link rel="stylesheet" href="styles/onsen-css-components-blue-basic-theme.css">  
     <link rel="stylesheet" href="styles/app.css"/>
@@ -156,13 +156,26 @@
 <ons-template id="login.html">
     <ons-page>
       <ons-toolbar>
-        <div  class="left"><ons-back-button>Back</ons-back-button></div>
-        <div class="center">Přihlášení k domácnosti</div>
+        <div class="login-toolbar">
+          <div class="before-Log">
+            <div  class="left"><ons-back-button>Zpět</ons-back-button></div>
+            <div class="center">Přihlášení k domácnosti</div>
+          </div>
+          <div class="after-Log" style="display: none;">
+            <div  class="left"><ons-back-button>Zpět</ons-back-button></div>
+            <div class="center">Přihlášen: <span class="red" id="nameLog">name</span></div>
+          </div>
+        </div>
+	    <div class="right">
+	      <ons-toolbar-button onclick="renderStats();">
+		      <ons-icon id="logIcon" icon="ion-ios-loop-strong" fixed-width="false" spin="true" style="display: none;"></ons-icon>
+	      </ons-toolbar-button>
+	    </div>
       </ons-toolbar>
 
         <div class="wrapper-card">
           <div class="card">
-            <div class="content">
+            <div class="content msgBox">
 
             </div>
           </div>
@@ -170,13 +183,13 @@
 
         <div class="login-form">
             <input id="logName" type="name" class="text-input--underbar" placeholder="Křestní jméno" value="">
-            <input id="regMail" type="name" class="text-input--underbar" placeholder="email" value="">
+            <input id="regMail" type="name" class="text-input--underbar" placeholder="email" value="" style="display: none;">
             <input id="logPass" type="password" class="text-input--underbar" placeholder="heslo" value="">
-            <input id="regPass" type="password" class="text-input--underbar" placeholder="heslo znovu" value="">
+            <input id="regPass" type="password" class="text-input--underbar" placeholder="heslo znovu" value="" style="display: none;">
             <br>
             <br>
             <br>
-            <ons-button modifier="large" class="login-button">Přihlásit se</ons-button>
+            <ons-button modifier="large" class="login-button" id="loginBtn">Přihlásit se</ons-button>
             <br>
             <span class="supress blue" style="float: left;">Přihlašuji se poprvé:</span>
             <label class="switch" style="float: right;">
@@ -229,7 +242,10 @@
 
     <script>
         ons.ready(function() {
-            nav.on('postpush', function(event) {
+
+	        Parse.initialize("OZzaxhboZwBA0LKHSW8TWWjyKUQNde6n7D7Ie8Ue", "ZNk19fV7khFmfEpQ2yZurDGyectCQw2nK5rHhH7d");
+
+	        nav.on('postpush', function(event) {
                 var id = nav.getCurrentPage().options.id;
                 if (id == 'stats')
                 {
@@ -238,8 +254,8 @@
                 else if(id == 'login')
                 {
                     console.log('chces se prihlasit');
-                    $("#regPass").hide();
-                    $("#regMail").hide();
+                    //$("#regPass").hide();
+                    //$("#regMail").hide();
                 }
                 else
                 {

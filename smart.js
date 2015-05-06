@@ -9,6 +9,7 @@ $(document).ready(function() {
 
 
 var prepare = function () {
+	var register = false;
 	//console.log('Prepared.');
 	$(document).on('click', '.list-item', function(e){
 		console.log(e.target.id);
@@ -25,9 +26,61 @@ var prepare = function () {
 		});
 	});
 	$(document).on('click', '#firstTime', function(){
-		console.log('klinul jsi')
+		register = !register;
 		$("#regPass").toggle();
 		$("#regMail").toggle();
+	});
+	$(document).on('click', '#loginBtn', function(e){
+
+		if (register)
+		{
+			console.log('Register handler');
+			var name    = $('#logName').val();
+			var mail    = $('#regMail').val();
+			var pass    = $('#logPass').val();
+			var regPass = $('#regPass').val();
+
+			if (pass == regPass)
+			{
+				$('.msgBox').html('<b class="blue">Registrace probíhá, prosím vyčkejte.</b>');
+				$('#loginBtn').attr('disabled','disabled');
+				$('#logIcon').show();
+				/*$.post( "http://pospile.ddns.net/status/module/", function( data ) {
+				  $('.msgBox').html('<b class="blue">' + data + '</b>');
+				});*/
+			}
+			else
+			{
+				$('.msgBox').html('<b class="red">Chyba: Hesla se neschodují.</b>');
+			}
+		}
+		else
+		{
+			console.log('Login handler');
+			var name    = $('#logName').val();
+			var pass    = $('#logPass').val();
+
+			if (name != '' || pass != '')
+			{
+				$('.msgBox').html('<b class="blue">Přihlášení probíhá, prosím vyčkejte.</b>');
+				$('#loginBtn').attr('disabled','disabled');
+				$('#logIcon').show();
+				$.post( "http://pospile.ddns.net/user/login", { name: "pospile", pass: "hoover2579" })
+				  .done(function( data ) {
+				  	console.log(data);
+				    $('.msgBox').hide();
+				    $('.before-Log').hide();
+				    $('#nameLog').html(data.username);
+				    $('.after-Log').show();
+				});
+			}
+			else
+			{
+				$('.msgBox').html('<b class="red">Chyba: Jméno i heslo musí být vyplněno.</b>');
+			}
+
+		}
+
 	});
 }
 
