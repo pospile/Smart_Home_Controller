@@ -1,0 +1,420 @@
+﻿<!doctype html>
+<html lang="en" ng-app="app">
+<head>
+  <meta charset="utf-8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Chytrá domácnost</title>
+
+    <script src="parse.js"></script>
+
+    <link rel="stylesheet" href="lib/onsen/css/onsenui.css">
+    <link rel="stylesheet" href="styles/onsen-css-components-blue-basic-theme.css">  
+    <link rel="stylesheet" href="styles/app.css"/>
+  
+
+    <script src="lib/onsen/js/angular/angular.js"></script>    
+    <script src="lib/onsen/js/onsenui.js"></script>    
+
+    <script src="cordova.js"></script>
+
+    <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
+
+    <style>
+        .messageBar
+        {
+            margin: 0;
+            padding: 8%;
+            position: relative;
+            bottom: 0;
+            background-color: #36a9fc;
+            color: white;
+            z-index: 1000;
+        }
+        .green 
+        {
+            background-color: #77DD77 !important;
+        }
+    </style>
+    
+</head>
+
+<body>    
+	<ons-navigator var="nav" id="realBody">
+    
+  
+  <ons-sliding-menu
+    menu-page="menu.html" main-page="main.html" side="left"
+    var="menu" type="overlay" max-slide-distance="260px" swipable="true" close-on-tap>
+  </ons-sliding-menu>
+        
+  <ons-template id="menu.html">
+    <ons-page>
+      <ons-toolbar><div class="left center" style="padding-left: 5%;">Ovládání: </div></ons-toolbar>
+
+
+      <ons-list class="menu-list">
+        <ons-list-item class="menu-item" onclick="returnHome();">
+          <ons-icon icon="fa-tasks inverted"></ons-icon>
+          Moduly
+        </ons-list-item>
+		<hr>
+        <ons-list-item class="menu-item" onclick="gotoStats();">
+          <ons-icon icon="ion-stats-bars inverted"></ons-icon>
+          Přehled
+        </ons-list-item>
+        <hr>
+          <ons-list-item class="menu-item" ng-click="nav.pushPage('contacts.html', { animation: 'slide', id: 'contacts' } )">
+              <ons-icon icon="ion-ios-chatboxes"></ons-icon>
+              Zprávy (nedostupné)
+          </ons-list-item>
+        <hr>
+        <ons-list-item class="menu-item" ng-click="nav.pushPage('login.html', { animation: 'lift', id: 'login' } )">
+          <ons-icon icon="fa-user"></ons-icon>
+          Uživatel: <span class="namePlace blue" style="float: right; padding-right: 5%;">přihlásit se</span>
+        </ons-list-item>
+        <hr>
+      </ons-list>
+        
+        
+    </ons-page>
+  </ons-template>
+
+  <ons-template id="main.html">
+    
+    <ons-page id="main">
+      <ons-toolbar>
+        <div class="left">
+          <ons-toolbar-button ng-click="menu.toggle()">
+            <ons-icon icon="ion-navicon" size="28px" fixed-width="false"></ons-icon>
+          </ons-toolbar-button>
+        </div>
+        <div class="center">Ovládání domácnosti</div>
+          <div class="right">
+              <ons-toolbar-button onclick="refresh();">
+                  <ons-icon id="doneIcon" icon="ion-android-done" fixed-width="false" spin="false" style="display: none;"></ons-icon>
+                  <ons-icon id="loadingIcon" icon="ion-ios-loop-strong" fixed-width="false" spin="true"></ons-icon>
+              </ons-toolbar-button>
+          </div>
+      </ons-toolbar>
+
+
+      <ons-row style="margin-top: 5%; text-align: center;">
+        <ons-col style="padding-top: 50%">
+            <section class="container">
+                <!-- <ons-list-item id="turnOff"  onclick="nav.pushPage('modul.html', { animation : 'lift' } )">
+                    <span>Vypnout systém (defaultní)</span>
+                </ons-list-item> -->
+
+                <ul id="appendList">
+                    <li id="loader" class="list-item">Nahrávám moduly: <ons-icon icon="refresh" spin="true"></ons-icon></li>
+                </ul>
+            </section>
+        </ons-col>
+      </ons-row>  
+    </ons-page>
+  </ons-template>
+
+  <ons-template id="modul.html">
+    <ons-page>
+
+      <ons-modal var="wait">
+          <div class="wrapper-card">
+              <div class="card">
+                  <div class="content black">
+
+                      <ons-icon icon="ion-gear-a" spin="true" size="100px"></ons-icon>
+                      <ons-icon icon="ion-gear-a" spin="true" size="100px"></ons-icon>
+                      <ons-icon icon="ion-gear-a" spin="true" size="100px"></ons-icon>
+                      <hr>
+                      <h3>Prosím vyčkejte</h3> <div class="supress">Načítám data o modulu <span id="modulID" class="red"></span>.</div>
+                  </div>
+              </div>
+          </div>
+      </ons-modal>
+
+
+      <ons-toolbar>
+        <div class="left"><ons-back-button>Zpět</ons-back-button></div>
+        <div class="center">Správa modulu: <span class="blue supress modulName">name</span></div>
+      </ons-toolbar>
+
+
+      <ons-row style="text-align: center;">
+        <ons-col>
+            <div class="center">
+                <h3 style="text-align: left; padding-left: 5%;">Ovládací panel: </h3>
+                <div class="wrapper-card">
+                    <div class="card">
+                        <div class="content" style="padding: 10%;">
+                            <p>Jméno modulu: <span id="name" class="blue" style="float: right; padding-right: 3%;">MODUL</span></p>
+                            <p>Status: <span id="status" class="blue" style="float: right; padding-right: 3%;">OK</span></p>
+                            <p>Popis modulu: <p id="desc" class="supress"></p>
+                        </div>
+
+                    </div>
+
+                    <div class="card">
+                        <div class="content" style="padding: 10%;">
+                            <div style="  display: inline-block;font-size: 25px;">Spustit: </div>
+                            <label class="switch" style="float: right;">
+                                <input id="active" name="" type="checkbox" class="switch__input">
+                                <div class="switch__toggle"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ons-col>
+      </ons-row>
+
+    </ons-page>
+  </ons-template>
+        
+<ons-template id="login.html">
+    <ons-page>
+      <ons-toolbar>
+        <div class="login-toolbar">
+          <div class="before-Log">
+            <div  class="left"><ons-back-button>Zpět</ons-back-button></div>
+            <div class="center">Přihlášení k domácnosti</div>
+          </div>
+        </div>
+	    <div class="right">
+	      <ons-toolbar-button onclick="renderStats();">
+		      <ons-icon id="logIcon" icon="ion-ios-loop-strong" fixed-width="false" spin="true" style="display: none;"></ons-icon>
+	      </ons-toolbar-button>
+	    </div>
+      </ons-toolbar>
+
+        <div class="msgArea">
+            <div class="wrapper-card">
+                <div class="card">
+                    <div class="content msgBox">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="login-form">
+            <input id="logName" type="text" class="text-input--underbar" placeholder="Křestní jméno" value="">
+            <input id="regMail" type="text" class="text-input--underbar" placeholder="email" value="" style="display: none;">
+            <input id="logPass" type="password" class="text-input--underbar" placeholder="heslo" value="">
+            <input id="regPass" type="password" class="text-input--underbar" placeholder="heslo znovu" value="" style="display: none;">
+            <br>
+            <br>
+            <br>
+            <ons-button modifier="large" class="login-button" id="loginBtn">Přihlásit se</ons-button>
+            <br>
+            <span class="supress blue" style="float: left;">Přihlašuji se poprvé:</span>
+            <label class="switch" style="float: right;">
+                <input id="firstTime" type="checkbox" class="switch__input">
+                <div class="switch__toggle"></div>
+            </label>
+            <br>
+            <hr>
+            <ons-button modifier="quiet" class="forgot-password">Zapoměl jsi heslo?</ons-button>
+        </div>
+
+        <div class="loggedIn" style="display: none;">
+            <div class="wrapper-card">
+                <div class="card">
+                    <div class="content">
+                        <p>Uživatel: <span class="right blue namePlace" style="float: right; padding-right: 5%;">user</span></p>
+                        <p>Email: <span class="right blue" id="mailPlace" style="float: right; padding-right: 5%;">mail</span></p>
+                        <p>Token: <span class="right blue" id="tokenPlace" style="float: right; padding-right: 5%;">token</span></p>
+                        <ons-button modifier="large" class="logout-button button--outline" id="logOutBtn">Odpojit účet</ons-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </ons-page>
+</ons-template>
+
+
+<ons-template id="stats.html">
+    <ons-page>
+        <ons-toolbar>
+            <div  class="left"><ons-back-button>Zpět</ons-back-button></div>
+            <div class="center">Statistiky</div>
+            <div class="right">
+                <ons-toolbar-button onclick="renderStats();">
+                    <ons-icon id="nonrefreshIcon" icon="ion-android-done" fixed-width="false" spin="false" style="display: none;"></ons-icon>
+                    <ons-icon id="refreshIcon" icon="ion-ios-loop-strong" fixed-width="false" spin="true"></ons-icon>
+                </ons-toolbar-button>
+            </div>
+        </ons-toolbar>
+
+        <div class="wrapper-card">
+            <div class="card">
+                <div class="content">
+                    <h3>Statistika: </h3>
+                    <hr>
+                    <p>Status zařízení je: <span class="blue supress" style="float: right; padding-right: 3%; font-size: 20px;"><span id="stat" >NaN </span><ons-icon icon="ion-radio-waves"></ons-icon></span></p>
+                    <hr>
+                    <p>Současná teplota je: <span class="blue supress" style="float: right; padding-right: 3%; font-size: 20px;"><span id="temp" >NaN </span><ons-icon icon="ion-thermometer"></ons-icon></span></p>
+                    <hr>
+                    <p>Současná světelnost je: <span class="blue supress" style="float: right; padding-right: 3%; font-size: 18.5px;"><span id="light" >NaN </span><ons-icon icon="ion-lightbulb"></ons-icon></span></p>
+                    <hr>
+                </div>
+            </div>
+        </div>
+    </ons-page>
+</ons-template>
+
+
+<ons-template id="contacts.html">
+    <ons-page>
+        <ons-toolbar>
+            <div class="left"><ons-back-button>Zpět</ons-back-button></div>
+            <div class="center">Vaše kontakty:</div>
+            <div class="right">
+                <ons-toolbar-button onclick="">
+                    <ons-icon id="nonrefreshIcon" icon="ion-android-done" fixed-width="false" spin="false" style="display: none;"></ons-icon>
+                    <ons-icon id="refreshIcon" icon="ion-ios-loop-strong" fixed-width="false" spin="true"></ons-icon>
+                </ons-toolbar-button>
+            </div>
+        </ons-toolbar>
+
+
+        <div class="contactList">
+
+
+            
+
+
+        </div>
+
+
+</ons-page>
+</ons-template>
+
+<ons-template id="chat.html">
+    <ons-page>
+        <ons-toolbar>
+            <div class="left"><ons-back-button>Zpět</ons-back-button></div>
+            <div class="center">Chat</div>
+            <div class="right">
+                <ons-toolbar-button onclick="">
+                    <ons-icon id="nonrefreshIcon" icon="ion-android-done" fixed-width="false" spin="false" style="display: none;"></ons-icon>
+                    <ons-icon id="refreshIcon" icon="ion-ios-loop-strong" fixed-width="false" spin="true"></ons-icon>
+                </ons-toolbar-button>
+            </div>
+        </ons-toolbar>
+
+        <label id="sendTo" style="display: none;"></label>
+
+        <div class="chatWindow" style="height: 75%; overflow: auto;-webkit-overflow-scrolling: touch;">
+
+            
+            <div class="spinner">
+                <div class="bounce1"></div>
+                <div class="bounce2"></div>
+                <div class="bounce3"></div>
+            </div>
+        </div>
+
+        
+
+        <div class="chatInput" style="width: 95%; position: fixed !important; bottom: 0; margin: 3%; display:inline-block;">
+            
+            <input type="text" id="message" style="margin-bottom: 5%; border-top-color: blue;" class="text-input text-input--underbar" placeholder="Vaše zpráva..." value="">
+            <ons-button modifier="large" class="logout-button button--outline" id="send">Odeslat</ons-button>
+        </div>
+
+    </ons-page>
+</ons-template>
+        
+
+</ons-navigator>
+    <script src="jquery.js"></script>
+    <script src="smart.js"></script>
+    <script src="localdata.js"></script>
+
+    <script>
+        ons.ready(function() {
+            socket = io.connect('http://78.45.176.209:8080');
+
+
+            Parse.initialize("OZzaxhboZwBA0LKHSW8TWWjyKUQNde6n7D7Ie8Ue", "ZNk19fV7khFmfEpQ2yZurDGyectCQw2nK5rHhH7d");
+
+
+            socket.on('open', function (msg) {
+
+                /*
+                ons.notification.alert({
+                    message:  msg.from + ' se právě připojil.',
+                    title: 'Připojení',
+                    buttonLabel: 'OK',
+                    animation: 'default', // or 'none'
+                    callback: function () {
+                    }
+                });
+                */
+                
+                if (msg.from != localStorage.getItem("name") && msg.to == localStorage.getItem("name"))
+                {
+                    $('#realBody').append('<div class="messageBar notificator">Uživatel <span class="black">' + msg.from + '</span> se právě připojil.<div id="valueHolder" style="display: none;">' + msg.from + '</div><br><ons-button modifier="large" class="button" id="openChat">napsat</ons-button></div>');
+
+                    setTimeout(function () {
+                        removeBar();
+                    }, 2000);
+                }
+            });
+
+            socket.on('message', function (msg) {
+                if (nav.getCurrentPage().options.id == "chat") {
+                    if (nav.getCurrentPage().options.user == msg.from) {
+                        AddMessageToChat("left", msg.message, msg.from);
+                    }
+                }
+                else
+                {
+                    $('#realBody').append('<div class="messageBar message green"><div id="dataHolderFrom" style="display: none;">' + msg.from + '</div><div id="dataHolderMessage" style="display: none;">' + msg.message + '</div><span class="black">' + msg.from + '</span> ' + msg.message + '</div>');
+                    setTimeout(function () {
+                        removeBar();
+                    }, 2000);
+                }
+            });
+
+	        nav.on('postpush', function(event) {
+                var id = nav.getCurrentPage().options.id;
+                if (id == 'stats')
+                {
+                    renderStats();
+                }
+                else if(id == 'login')
+                {
+                    if (localStorage.getItem("login") == "true")
+                    {
+                        LoginSave(localStorage.getItem("name"), localStorage.getItem("email"), localStorage.getItem("token"));
+                    }
+                }
+                else if (id == 'contacts')
+                {
+                    renderContactList();
+                }
+                else if (id == 'chat') {
+                    var from = localStorage.getItem("name");
+                    var to = nav.getCurrentPage().options.user;
+                    socket.emit('open', { 'from': from, 'to': to });
+                    renderChat(to);
+                    $(".chatWindow").animate({ scrollTop: $(document).height() }, "slow");
+                }
+	            else
+	            {
+                    page = event.enterPage.element[0];
+                    wait.show();
+                    renderModulPage(page);
+	            }
+            });
+        });
+    </script>
+
+</body>
+</html>

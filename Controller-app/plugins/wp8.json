@@ -1,0 +1,32 @@
+{
+    "prepare_queue": {
+        "installed": [],
+        "uninstalled": []
+    },
+    "config_munge": {
+        "files": {
+            "Properties/WMAppManifest.xml": {
+                "parents": {
+                    "/Deployment/App/Capabilities": [
+                        {
+                            "xml": "<Capability Name=\"ID_CAP_LOCATION\" />",
+                            "count": 1
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "installed_plugins": {
+        "android.support.v4": {
+            "PACKAGE_NAME": "{ddd1c5e0-fa69-11e4-8c29-87aa3eda6bdd}"
+        },
+        "com.pushbots.push": {
+            "PACKAGE_NAME": "{ddd1c5e0-fa69-11e4-8c29-87aa3eda6bdd}"
+        },
+        "org.apache.cordova.geolocation": {
+            "PACKAGE_NAME": "{ddd1c5e0-fa69-11e4-8c29-87aa3eda6bdd}"
+        }
+    },
+    "dependent_plugins": {}
+}
